@@ -559,6 +559,7 @@ int main(int argc, char **argv)
         continuousMqtt(Inverters, &cfg);
         return 0;
     }
+<<<<<<< HEAD
 
     if (cfg.mqtt == 1) // MQTT enabled
     {
@@ -568,9 +569,12 @@ int main(int argc, char **argv)
             std::cout << "Error " << rc << " while publishing to MQTT Broker" << std::endl;
         }
     }
+=======
+>>>>>>> 9817fe369c4603c9dc17bafa1336acc476d5dd41
 
-	//SolarInverter -> Continue to get archive data
-	unsigned int idx;
+
+    //SolarInverter -> Continue to get archive data
+    unsigned int idx;
 
     /***************
     * Get Day Data *

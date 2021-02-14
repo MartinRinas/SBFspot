@@ -132,3 +132,7 @@ int continuousMqtt(InverterData *Inverters[], Config *cfg)
     return 0;
 }
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 9817fe369c4603c9dc17bafa1336acc476d5dd41
