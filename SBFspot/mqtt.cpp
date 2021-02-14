@@ -96,7 +96,8 @@ int mqtt_publish(const Config *cfg, InverterData *inverters[])
 			else if (*it == "udc2")				FormatFloat(value, (float)inverters[inv]->Udc2 / 100, 0, prec, dp);
 			else if (*it == "etotal")			FormatDouble(value, (double)inverters[inv]->ETotal / 1000, 0, prec, dp);
 			else if (*it == "etoday")			FormatDouble(value, (double)inverters[inv]->EToday / 1000, 0, prec, dp);
-			else if (*it == "pactot")			FormatFloat(value, (float)inverters[inv]->TotalPac, 0, prec, dp);
+//			else if (*it == "pactot")			FormatFloat(value, (float)inverters[inv]->TotalPac, 0, prec, dp);
+			else if (*it == "pactot")			sprintf(value,"%d",(int)inverters[inv]->TotalPac);
 			else if (*it == "pac1")				FormatFloat(value, (float)inverters[inv]->Pac1, 0, prec, dp);
 			else if (*it == "pac2")				FormatFloat(value, (float)inverters[inv]->Pac1, 0, prec, dp);
 			else if (*it == "pac3")				FormatFloat(value, (float)inverters[inv]->Pac1, 0, prec, dp);

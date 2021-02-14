@@ -559,18 +559,6 @@ int main(int argc, char **argv)
         continuousMqtt(Inverters, &cfg);
         return 0;
     }
-<<<<<<< HEAD
-
-    if (cfg.mqtt == 1) // MQTT enabled
-    {
-        rc = mqtt_publish(&cfg, Inverters);
-        if (rc != 0)
-        {
-            std::cout << "Error " << rc << " while publishing to MQTT Broker" << std::endl;
-        }
-    }
-=======
->>>>>>> 9817fe369c4603c9dc17bafa1336acc476d5dd41
 
 
     //SolarInverter -> Continue to get archive data
@@ -3529,3 +3517,4 @@ E_SBFSPOT getDeviceData(InverterData *inv, LriDef lri, uint16_t cmd, Rec40S32 &d
 
     return rc;
 }
+

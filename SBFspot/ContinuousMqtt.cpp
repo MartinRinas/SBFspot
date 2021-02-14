@@ -106,7 +106,7 @@ int continuousMqtt(InverterData *Inverters[], Config *cfg)
                 std::cout << "Error " << rc << " while publishing to MQTT Broker" << std::endl;
 	            break;
         }
-        sleep(5);
+        sleep(9);
     }
 
 
@@ -132,7 +132,4 @@ int continuousMqtt(InverterData *Inverters[], Config *cfg)
     return 0;
 }
 
-<<<<<<< HEAD
-=======
 
->>>>>>> 9817fe369c4603c9dc17bafa1336acc476d5dd41

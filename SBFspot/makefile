@@ -1,31 +1,36 @@
-###########################################################################
-# Makefile for SBFspot V3.x
+############################################################
+# Makefile for SBFspotUploadDaemon
 #
 # Compilation: 
-#	make nosql|sqlite|mysql|mariadb
+#	make sqlite|mysql|mariadb
 #
 # Installation:
-#	sudo make install_nosql|install_sqlite|install_mysql|install_mariadb
+#	sudo make install_sqlite|install_mysql|install_mariadb
 #
-###########################################################################
+############################################################
 
 CC = gcc
 CXX = g++
 AR = ar
 LD = g++
 
-APPNAME = SBFspot
-INSTALLDIR = /usr/local/bin/sbfspot.3/
+INSTALLDIR  = /usr/local/bin/sbfspot.3/
 
-SRC_NOSQL  := boost_ext.cpp misc.cpp sunrise_sunset.cpp SBFNet.cpp CSVexport.cpp Ethernet.cpp EventData.cpp ArchData.cpp SBFspot.cpp TagDefs.cpp Bluetooth.cpp mqtt.cpp ContinuousMqtt.cpp 
-SRC_SQLITE := $(SRC_NOSQL) db_SQLite.cpp db_SQLite_Export.cpp
-SRC_MYSQL  := $(SRC_NOSQL) db_MySQL.cpp db_MySQL_Export.cpp
+APPNAME = SBFspotUploadDaemon
+
+SRC_COMMON := ../SBFspotUploadCommon
+SRC_SBFSPOT:= ../SBFspot
+SRC_NOOPT  := $(SRC_COMMON)/PVOutput_x.cpp
+SRC_MAIN   := main.cpp $(SRC_COMMON)/Configuration.cpp $(SRC_COMMON)/CommonServiceCode.cpp $(SRC_COMMON)/PVOutput.cpp
+SRC_SQLITE := $(SRC_MAIN) $(SRC_SBFSPOT)/db_SQLite.cpp
+SRC_MYSQL  := $(SRC_MAIN) $(SRC_SBFSPOT)/db_MySQL.cpp
 SRC_MARIADB:= $(SRC_MYSQL)
 
-CFLAGS     := -c -Wall -O2 -Wno-unused-local-typedefs
-INCDIR     :=
+CFLAGS     := -c -Wall -Wno-unused-local-typedefs
+CFLAGS_OPT := -O2
+INCDIR     := ../SBFspot
 LIBDIR     :=
-LIBS       := pthread bluetooth boost_date_time boost_system boost_filesystem boost_regex
+LIBS       := pthread curl
 LDFLAGS    := -s
 
 # Default Target = Install SQLite
@@ -33,11 +38,7 @@ ifeq ($(MAKECMDGOALS),)
 	MAKECMDGOALS = install_sqlite
 endif
 
-ifeq ($(MAKECMDGOALS),nosql)
-BINDIR     := nosql/bin/
-OBJDIR     := nosql/obj/
-OBJECTS    := $(SRC_NOSQL:%.cpp=$(OBJDIR)%.o)
-else ifeq ($(MAKECMDGOALS),sqlite)
+ifeq ($(MAKECMDGOALS),sqlite)
 BINDIR     := sqlite/bin/
 OBJDIR     := sqlite/obj/
 OBJECTS    := $(SRC_SQLITE:%.cpp=$(OBJDIR)%.o)
@@ -55,8 +56,6 @@ OBJDIR     := mariadb/obj/
 OBJECTS    := $(SRC_MARIADB:%.cpp=$(OBJDIR)%.o)
 CFLAGS     := $(CFLAGS) -DUSE_MYSQL
 LIBS       := $(LIBS) mariadbclient
-else ifeq ($(MAKECMDGOALS),install_nosql)
-BINDIR     := nosql/bin/
 else ifeq ($(MAKECMDGOALS),install_sqlite)
 BINDIR     := sqlite/bin/
 else ifeq ($(MAKECMDGOALS),install_mysql)
@@ -72,15 +71,11 @@ CMD_MKDIR = || mkdir -p
 CMD_TESTDIR = test -d
 CMD_COPY = cp
 
-nosql: init_build build_target
-
 sqlite: init_build build_target
 
 mysql: init_build build_target
 
 mariadb: init_build build_target
-
-install_nosql: init_install install
 
 install_sqlite: init_install install
 
@@ -90,40 +85,34 @@ install_mariadb: init_install install
 
 init_build:
 	$(CMD_TESTDIR) $(OBJDIR) $(CMD_MKDIR) $(OBJDIR)
+	$(CMD_TESTDIR) $(OBJDIR)/$(SRC_COMMON) $(CMD_MKDIR) $(OBJDIR)/$(SRC_COMMON)
+	$(CMD_TESTDIR) $(OBJDIR)/$(SRC_SBFSPOT) $(CMD_MKDIR) $(OBJDIR)/$(SRC_SBFSPOT)
 	$(CMD_TESTDIR) $(BINDIR) $(CMD_MKDIR) $(BINDIR)
-	
+
 init_install:
 	$(CMD_TESTDIR) $(INSTALLDIR) $(CMD_MKDIR) $(INSTALLDIR)
-
+	
 build_target: $(TARGET)
 
 install:
 	$(CMD_COPY) $(TARGET) $(INSTALLDIR)
-	$(CMD_COPY) TagList*.txt $(INSTALLDIR)
-	$(CMD_COPY) date_time_zonespec.csv $(INSTALLDIR)
-	$(CMD_COPY) SBFspot.cfg $(INSTALLDIR)SBFspot.default.cfg
-ifeq ($(MAKECMDGOALS),install_sqlite)
-	$(CMD_COPY) *SQLite.sql $(INSTALLDIR)
-endif
-ifeq ($(MAKECMDGOALS),install_mysql)
-	$(CMD_COPY) *MySQL.sql $(INSTALLDIR)
-endif
-ifeq ($(MAKECMDGOALS),install_mariadb)
-	$(CMD_COPY) *MySQL.sql $(INSTALLDIR)
-endif
-	
-$(OBJDIR)%.o: %.cpp
-	$(CXX) $^ $(CFLAGS) -o $@ $(addprefix -I,$(INCDIR))
+	$(CMD_COPY) SBFspotUpload.default.cfg $(INSTALLDIR)
 
-$(TARGET): $(OBJECTS)
+OBJECTS_NOOPT := $(SRC_NOOPT:%.cpp=$(OBJDIR)%.o)
+
+$(OBJECTS): EXTRA_FLAGS := $(CFLAGS_OPT)
+
+$(OBJDIR)%.o: %.cpp
+	$(CXX) $^ $(CFLAGS) $(EXTRA_FLAGS) -o $@ -I$(INCDIR)
+
+$(TARGET): $(OBJECTS_NOOPT) $(OBJECTS)
 	$(LD) $^ $(LDFLAGS) -o $@ -Wl,-Bdynamic $(addprefix -l,$(LIBS)) $(addprefix -L,$(LIBDIR))
 
 cleanall:
-	$(CMD_RMDIR) nosql
 	$(CMD_RMDIR) sqlite
 	$(CMD_RMDIR) mysql
 	$(CMD_RMDIR) mariadb
 
 clean: cleanall
 
-.PHONY: nosql sqlite mysql mariadb install_nosql install_sqlite install_mysql install_mariadb cleanall clean
+.PHONY: sqlite mysql mariadb install_sqlite install_mysql install_mariadb cleanall clean
